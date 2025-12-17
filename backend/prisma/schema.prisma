@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  name             String
+  role             Role
+  refreshTokenHash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  inspectedReports InspectionReport[] @relation("InspectorReports")
+  approvedReports  InspectionReport[] @relation("ApproverReports")
+  auditLogs        AuditLog[]
+}
+
+enum Role {
+  INSPECTOR
+  KITCHEN_MANAGER
+  HOTEL_MANAGEMENT
+  ADMIN
+}
+
+model InspectionForm {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fields  FormField[]
+  reports InspectionReport[]
+}
+
+model FormField {
+  id        String    @id @default(uuid())
+  formId    String
+  label     String
+  fieldType FieldType
+  required  Boolean   @default(false)
+  options   Json?
+  order     Int
+
+  form         InspectionForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  reportFields ReportField[]
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  SELECT
+  RADIO
+  CHECKBOX
+  DATE
+}
+
+model InspectionReport {
+  id            String       @id @default(uuid())
+  formId        String
+  inspectorId   String
+  status        ReportStatus @default(SUBMITTED)
+  aiSummary     String?      @db.Text
+  aiEvaluation  Evaluation?
+  submittedAt   DateTime     @default(now())
+  approvedAt    DateTime?
+  approvedBy    String?
+
+  form     InspectionForm @relation(fields: [formId], references: [id])
+  inspector User          @relation("InspectorReports", fields: [inspectorId], references: [id])
+  approver  User?         @relation("ApproverReports", fields: [approvedBy], references: [id])
+  fields    ReportField[]
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum Evaluation {
+  GOOD
+  AVERAGE
+  POOR
+}
+
+model ReportField {
+  id       String @id @default(uuid())
+  reportId String
+  fieldId  String
+  value    String @db.Text
+
+  report InspectionReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  field  FormField        @relation(fields: [fieldId], references: [id])
+}
+
+model Guideline {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  resource  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
