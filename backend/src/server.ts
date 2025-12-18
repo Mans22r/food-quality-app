@@ -1,6 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+});
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -20,7 +29,7 @@ const app = express();
 
 // CORS configuration - must be the very first middleware
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://192.168.1.16:8081'],
     credentials: true,
     exposedHeaders: ['Authorization'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
@@ -57,21 +66,7 @@ app.use(rateLimit({
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS configuration - must be before any routes
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:3000');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-        return;
-    }
-    
-    next();
-});
+// Removed duplicate CORS configuration - handled by cors middleware above
 
 // Auth0 configuration (temporarily disabled for CORS testing)
 // const config = {
@@ -121,8 +116,16 @@ const PORT = process.env.PORT || 5001;
 
 // Export app for testing/serverless, or start it
 if (require.main === module) {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server running on port ${PORT}`);
+    });
+    
+    server.on('error', (err) => {
+        console.error('Server error:', err);
+    });
+    
+    server.on('listening', () => {
+        console.log('Server is now listening');
     });
 }
 

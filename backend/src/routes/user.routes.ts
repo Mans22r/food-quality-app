@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUser, getAllUsers } from '../controllers/userController';
+import { createUser, getAllUsers, updateUserRole, deleteUser } from '../controllers/userController';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { Role } from '../types';
 
@@ -10,5 +10,7 @@ router.use(requireRole([Role.ADMIN]));
 
 router.post('/', createUser);
 router.get('/', getAllUsers);
+router.put('/:id/role', updateUserRole);
+router.delete('/:id', deleteUser);
 
 export default router;

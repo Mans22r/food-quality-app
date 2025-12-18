@@ -37,7 +37,9 @@ export const getGuidelineById = async (req: Request, res: Response) => {
         const guideline = await prisma.guideline.findUnique({
             where: { id },
         });
-        if (!guideline) return res.status(404).json({ error: 'Guideline not found' });
+        if (!guideline) {
+            return res.status(404).json({ error: 'Guideline not found' });
+        }
         res.json(guideline);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch guideline' });
@@ -48,6 +50,15 @@ export const updateGuideline = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { title, content, category } = req.body;
+
+        // Check if guideline exists
+        const existingGuideline = await prisma.guideline.findUnique({
+            where: { id },
+        });
+        
+        if (!existingGuideline) {
+            return res.status(404).json({ error: 'Guideline not found' });
+        }
 
         const guideline = await prisma.guideline.update({
             where: { id },
@@ -68,6 +79,15 @@ export const updateGuideline = async (req: Request, res: Response) => {
 export const deleteGuideline = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        // Check if guideline exists
+        const existingGuideline = await prisma.guideline.findUnique({
+            where: { id },
+        });
+        
+        if (!existingGuideline) {
+            return res.status(404).json({ error: 'Guideline not found' });
+        }
 
         await prisma.guideline.delete({
             where: { id },
