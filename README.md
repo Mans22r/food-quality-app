@@ -137,7 +137,9 @@ Each component of the application needs to be built before deployment:
 
 1. **Backend API**: `cd backend && npm run build`
 2. **Web Dashboard**: `cd web && npm run build`
-3. **Mobile App**: `cd mobile/FoodQualityInspector && expo build:android` or `expo build:ios`
+3. **Mobile App**: For development/testing: `cd mobile/FoodQualityInspector && npm start`
+   For production deployment: `cd mobile/FoodQualityInspector && expo build:android` or `expo build:ios`
+
 ### Prerequisites for Deployment
 
 1. A server/VPS with Node.js installed (Ubuntu 20.04+ recommended)
