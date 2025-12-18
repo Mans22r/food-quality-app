@@ -98,7 +98,7 @@ app.get('/health', (req, res) => {
 });
 // Error handler (must be last)
 app.use(errorHandler_1.errorHandler);
-const PORT = process.env.PORT || 5001;
+const PORT = parseInt(process.env.PORT || '5001', 10);
 // Export app for testing/serverless, or start it
 if (require.main === module) {
     const server = app.listen(PORT, '0.0.0.0', () => {
