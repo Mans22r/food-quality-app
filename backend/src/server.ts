@@ -82,34 +82,37 @@ app.use(rateLimit({
 app.use(express.json());
 app.use(cookieParser());
 
-// Removed duplicate CORS configuration - handled by cors middleware above
-
-// Auth0 configuration (temporarily disabled for CORS testing)
-// const config = {
-//   authRequired: false,
-//   auth0Logout: true,
-//   secret: process.env.AUTH0_SECRET,
-//   baseURL: 'http://localhost:5000', // Backend URL
-//   clientID: process.env.AUTH0_CLIENT_ID,
-//   clientSecret: process.env.AUTH0_CLIENT_SECRET,
-//   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-//   authorizationParams: {
-//     response_type: 'code',
-//     scope: 'openid profile email'
-//   },
-//   routes: {
-//     callback: '/callback',
-//     login: '/login',
-//     logout: '/logout'
-//   }
-// };
+// Auth0 configuration - properly enabled now
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: process.env.AUTH0_SECRET,
+  baseURL: process.env.AUTH0_BASE_URL || 'http://localhost:5001',
+  clientID: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+  authorizationParams: {
+    response_type: 'code',
+    scope: 'openid profile email'
+  },
+  routes: {
+    callback: '/callback',
+    login: '/login',
+    logout: '/logout'
+  }
+};
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
-// app.use(auth(config));
+app.use(auth(config));
 
 // Custom route to check authentication status
 app.get('/', (req, res) => {
-  res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+  // Check if oidc exists before using it
+  if (req.oidc) {
+    res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+  } else {
+    res.send('Auth system not initialized');
+  }
 });
 
 // Routes

@@ -18,6 +18,7 @@ const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const errorHandler_1 = require("./middleware/errorHandler");
+const express_openid_connect_1 = require("express-openid-connect");
 // Placeholder for routes
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
@@ -75,31 +76,36 @@ app.use((0, express_rate_limit_1.default)({
 // Body parsing
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
-// Removed duplicate CORS configuration - handled by cors middleware above
-// Auth0 configuration (temporarily disabled for CORS testing)
-// const config = {
-//   authRequired: false,
-//   auth0Logout: true,
-//   secret: process.env.AUTH0_SECRET,
-//   baseURL: 'http://localhost:5000', // Backend URL
-//   clientID: process.env.AUTH0_CLIENT_ID,
-//   clientSecret: process.env.AUTH0_CLIENT_SECRET,
-//   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-//   authorizationParams: {
-//     response_type: 'code',
-//     scope: 'openid profile email'
-//   },
-//   routes: {
-//     callback: '/callback',
-//     login: '/login',
-//     logout: '/logout'
-//   }
-// };
+// Auth0 configuration - properly enabled now
+const config = {
+    authRequired: false,
+    auth0Logout: true,
+    secret: process.env.AUTH0_SECRET,
+    baseURL: process.env.AUTH0_BASE_URL || 'http://localhost:5001',
+    clientID: process.env.AUTH0_CLIENT_ID,
+    clientSecret: process.env.AUTH0_CLIENT_SECRET,
+    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+    authorizationParams: {
+        response_type: 'code',
+        scope: 'openid profile email'
+    },
+    routes: {
+        callback: '/callback',
+        login: '/login',
+        logout: '/logout'
+    }
+};
 // auth router attaches /login, /logout, and /callback routes to the baseURL
-// app.use(auth(config));
+app.use((0, express_openid_connect_1.auth)(config));
 // Custom route to check authentication status
 app.get('/', (req, res) => {
-    res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+    // Check if oidc exists before using it
+    if (req.oidc) {
+        res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+    }
+    else {
+        res.send('Auth system not initialized');
+    }
 });
 // Routes
 app.use('/api/auth', auth_routes_1.default);
