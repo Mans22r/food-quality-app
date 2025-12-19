@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const data = await api.post('/api/auth/login', { email, password });
+      const data = await api.post('/auth/login', { email, password });
       const { accessToken, refreshToken, user } = data;
       
       localStorage.setItem('accessToken', accessToken);
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await api.post('/api/auth/logout', {});
+      await api.post('/auth/logout', {});
     } catch (error) {
       console.error('Logout failed', error);
     } finally {

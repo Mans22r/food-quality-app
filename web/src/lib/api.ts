@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface RequestOptions extends RequestInit {
     headers?: Record<string, string>;
@@ -29,11 +29,11 @@ async function request(url: string, options: RequestOptions = {}) {
         headers,
     });
 
-    if (response.status === 401 && !url.includes('/api/auth/login') && !url.includes('/api/auth/refresh')) {
+    if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
         try {
             // Attempt refresh - send refresh token in body if available
             const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-            const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
+            const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // Important for sending httpOnly cookie
