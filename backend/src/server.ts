@@ -29,7 +29,7 @@ const app = express();
 
 // Enhanced CORS configuration - more flexible for production
 const corsOptions = {
-    origin: function (origin, callback) {
+    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
         // Allow requests with no origin (like mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
         

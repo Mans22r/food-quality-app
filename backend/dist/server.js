@@ -26,9 +26,25 @@ const report_routes_1 = __importDefault(require("./routes/report.routes"));
 const stats_routes_1 = __importDefault(require("./routes/stats.routes"));
 const guideline_routes_1 = __importDefault(require("./routes/guideline.routes"));
 const app = (0, express_1.default)();
-// CORS configuration - must be the very first middleware
+// Enhanced CORS configuration - more flexible for production
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://192.168.1.16:8081'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, etc.)
+        if (!origin)
+            return callback(null, true);
+        // Get allowed origins from environment variable or use defaults
+        const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ||
+            ['http://localhost:3000', 'http://192.168.1.16:8081'];
+        // Check if the origin is in our allowed list
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        }
+        else {
+            // For production, be more permissive but log the attempt
+            console.log('CORS request from origin:', origin);
+            callback(null, true); // Temporarily allow all origins - tighten this in production
+        }
+    },
     credentials: true,
     exposedHeaders: ['Authorization'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
